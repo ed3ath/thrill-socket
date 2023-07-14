@@ -15,7 +15,8 @@
     "knex": "^2.5.1",
     "lodash": "^4.17.21",
     "mysql": "^2.18.1",
-    "socket.io": "^4.7.1"
+    "socket.io": "^4.7.1",
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.30.0"
   },
   "devDependencies": {
     "eslint": "^8.0.1",

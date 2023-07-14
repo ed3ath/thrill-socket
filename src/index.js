@@ -1,12 +1,21 @@
-import { createServer } from 'http'
+import { App } from 'uWebSockets.js'
 import { Server } from 'socket.io'
 import sockets from './sockets/index.js'
 
 import config from './services/config.js'
 
-const server = createServer()
-const io = new Server(server, config.socket)
+const app = App()
 
+const io = new Server(config.socket)
+io.attachApp(app)
+
+io.on('connect_error', (err) => {
+  console.log(`connect_error due to ${err.message}`)
+})
 io.on('connection', (socket) => sockets(socket))
 
-server.listen(3000)
+app.listen(3000, (res) => {
+  if (!res) {
+    console.warn('port already in use')
+  }
+})

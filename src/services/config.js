@@ -15,8 +15,7 @@ const config = {
       origin: '*',
       credentials: true,
       methods: ['GET', 'POST']
-    },
-    transports: ['websocket']
+    }
   }
 }
 
