@@ -19,7 +19,7 @@ const video = (socket) => {
   socket.on(VIDEO_EVENTS.LIKE, async (data) => {
     try {
       if (_.isNil(data.video_id)) throw Error('The video id field is required.')
-      if (_.isNil(data.is_like)) throw Error('The comment by field is required.')
+      if (_.isNil(data.is_like)) throw Error('The is like by field is required.')
       if (_.isEmpty(await pool('videos').select('*').where('id', data.video_id))) throw Error('The selected video id is invalid.')
       if (data.is_like) {
         await pool('video_likes').where('video_id', data.video_id).increment({ counter: 1 })
