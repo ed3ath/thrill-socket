@@ -16,6 +16,30 @@ const video = (socket) => {
       .then((list) => socket.emit(VIDEO_EVENTS.LIST, list))
   })
 
+  socket.on(VIDEO_EVENTS.VIEW, async (data) => {
+    try {
+      if (_.isNil(data.video_id)) throw Error('The video id field is required.')
+      if (_.isEmpty(await pool('videos').select('*').where('id', data.video_id))) throw Error('The selected video id is invalid.')
+      await pool('video_views').where('video_id', data.video_id).increment({ counter: 1 })
+      const [result] = await pool('video_views').where('video_id', data.video_id)
+      socket.emit(VIDEO_EVENTS.VIEW, {
+        status: true,
+        data: {
+          counter: result.counter
+        },
+        message: 'View counter is updated.',
+        error: false
+      })
+    } catch (e) {
+      socket.emit(VIDEO_EVENTS.VIEW, {
+        status: false,
+        data: [],
+        message: e.message,
+        error: true
+      })
+    }
+  })
+
   socket.on(VIDEO_EVENTS.LIKE, async (data) => {
     try {
       if (_.isNil(data.video_id)) throw Error('The video id field is required.')
@@ -30,7 +54,7 @@ const video = (socket) => {
         data: {
           likes: result.counter
         },
-        message: 'Like counter updated.',
+        message: 'Like counter is updated.',
         error: false
       })
     } catch (e) {
