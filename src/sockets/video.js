@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 import pool from '../services/database.js'
 
 import { VIDEO_EVENTS } from '../constants.js'
@@ -14,15 +16,59 @@ const video = (socket) => {
       .then((list) => socket.emit(VIDEO_EVENTS.LIST, list))
   })
 
-  socket.on(VIDEO_EVENTS.POST, (data) => {
-    console.log('test')
-    pool
-      .insert(data)
-      .into('videos')
-      .then((id) =>
-        pool.select('*').from('videos').where({ id: id[0] })
-          .then(result => socket.emit(VIDEO_EVENTS.POST, result[0]))
-      )
+  socket.on(VIDEO_EVENTS.LIKE, async (data) => {
+    try {
+      if (_.isNil(data.video_id)) throw Error('The video id field is required.')
+      if (_.isNil(data.is_like)) throw Error('The comment by field is required.')
+      if (_.isEmpty(await pool('videos').select('*').where('id', data.video_id))) throw Error('The selected video id is invalid.')
+      if (data.is_like) {
+        await pool('video_likes').where('video_id', data.video_id).increment({ counter: 1 })
+      }
+      const [result] = await pool('video_likes').where('video_id', data.video_id)
+      socket.emit(VIDEO_EVENTS.LIKE, {
+        status: true,
+        data: {
+          likes: result.counter
+        },
+        message: 'Like counter updated.',
+        error: false
+      })
+    } catch (e) {
+      socket.emit(VIDEO_EVENTS.LIKE, {
+        status: false,
+        data: [],
+        message: e.message,
+        error: true
+      })
+    }
+  })
+
+  socket.on(VIDEO_EVENTS.COMMENT, async (data) => {
+    try {
+      if (_.isNil(data.video_id)) throw Error('The video id field is required.')
+      if (_.isNil(data.comment_by)) throw Error('The comment by field is required.')
+      if (_.isNil(data.comment)) throw Error('The comment field is required.')
+      if (_.isEmpty(await pool('videos').select('*').where('id', data.video_id))) throw Error('The selected video id is invalid.')
+      if (_.isEmpty(await pool('users').select('*').where('id', data.comment_by))) throw Error('The selected comment by is invalid.')
+      const [commentId] = await pool('video_comments').insert(_.assign(data, {
+        created_at: new Date(),
+        updated_at: new Date()
+      }))
+      const [result] = await pool('video_comments').where('id', commentId)
+      socket.emit(VIDEO_EVENTS.COMMENT, {
+        status: true,
+        data: result,
+        message: 'comment done.',
+        error: false
+      })
+    } catch (e) {
+      socket.emit(VIDEO_EVENTS.COMMENT, {
+        status: false,
+        data: [],
+        message: e.message,
+        error: true
+      })
+    }
   })
 }
 

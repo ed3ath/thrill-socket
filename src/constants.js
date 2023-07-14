@@ -1,6 +1,8 @@
 export const VIDEO_EVENTS = {
   LIST: 'video-list',
-  POST: 'video-post'
+  LIKE: 'video-like',
+  COMMENT: 'video-comment',
+  COMMENT_LIKE: 'video-comment-like'
 }
 
 export const HTTP_METHOD = {
